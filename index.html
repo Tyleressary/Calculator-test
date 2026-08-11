@@ -9,20 +9,269 @@
       margin: 0;
       min-height: 100vh;
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
+      gap: 1.5rem;
       background-color: #f0fff4;
       font-family: Arial, Helvetica, sans-serif;
     }
 
     h1 {
+      margin: 0;
       text-align: center;
       color: #2e7d32;
       font-size: 3rem;
+    }
+
+    .calculator {
+      width: 20rem;
+      max-width: 90vw;
+      padding: 1rem;
+      border-radius: 1rem;
+      background-color: #ffffff;
+      box-shadow: 0 0.5rem 1.5rem rgba(46, 125, 50, 0.25);
+    }
+
+    #display {
+      min-height: 3rem;
+      margin-bottom: 1rem;
+      padding: 0.75rem 1rem;
+      border-radius: 0.5rem;
+      background-color: #e8f5e9;
+      color: #1b5e20;
+      font-size: 2rem;
+      text-align: right;
+      overflow-x: auto;
+      white-space: nowrap;
+    }
+
+    .keys {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.5rem;
+    }
+
+    button {
+      padding: 1rem 0;
+      border: none;
+      border-radius: 0.5rem;
+      background-color: #e8f5e9;
+      color: #1b5e20;
+      font-size: 1.25rem;
+      font-family: inherit;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #c8e6c9;
+    }
+
+    button:active {
+      transform: translateY(0.0625rem);
+    }
+
+    button:focus-visible {
+      outline: 0.1875rem solid #2e7d32;
+      outline-offset: 0.125rem;
+    }
+
+    .operator {
+      background-color: #a5d6a7;
+    }
+
+    .operator:hover {
+      background-color: #81c784;
+    }
+
+    .equals {
+      background-color: #2e7d32;
+      color: #ffffff;
+    }
+
+    .equals:hover {
+      background-color: #1b5e20;
+    }
+
+    .span-two {
+      grid-column: span 2;
     }
   </style>
 </head>
 <body>
   <h1>Tyler's Calculator</h1>
+
+  <div class="calculator">
+    <div id="display" role="status" aria-live="polite">0</div>
+    <div class="keys">
+      <button data-action="clear">C</button>
+      <button data-action="backspace">&#9003;</button>
+      <button data-action="percent">%</button>
+      <button class="operator" data-operator="/">&divide;</button>
+
+      <button data-digit="7">7</button>
+      <button data-digit="8">8</button>
+      <button data-digit="9">9</button>
+      <button class="operator" data-operator="*">&times;</button>
+
+      <button data-digit="4">4</button>
+      <button data-digit="5">5</button>
+      <button data-digit="6">6</button>
+      <button class="operator" data-operator="-">&minus;</button>
+
+      <button data-digit="1">1</button>
+      <button data-digit="2">2</button>
+      <button data-digit="3">3</button>
+      <button class="operator" data-operator="+">+</button>
+
+      <button class="span-two" data-digit="0">0</button>
+      <button data-action="decimal">.</button>
+      <button class="equals" data-action="equals">=</button>
+    </div>
+  </div>
+
+  <script>
+    const display = document.getElementById('display');
+
+    // current: the digits being typed. accumulator/operator hold the pending
+    // left-hand side. overwrite means the next digit starts a fresh number.
+    let current = '0';
+    let accumulator = null;
+    let operator = null;
+    let overwrite = false;
+
+    function render() {
+      display.textContent = current;
+    }
+
+    // Trims floating-point noise like 0.1 + 0.2 => 0.30000000000000004.
+    function format(value) {
+      if (!isFinite(value)) return 'Error';
+      return String(parseFloat(value.toPrecision(12)));
+    }
+
+    function compute(a, b, op) {
+      switch (op) {
+        case '+': return a + b;
+        case '-': return a - b;
+        case '*': return a * b;
+        case '/': return b === 0 ? NaN : a / b;
+      }
+    }
+
+    function clear() {
+      current = '0';
+      accumulator = null;
+      operator = null;
+      overwrite = false;
+    }
+
+    function inputDigit(digit) {
+      if (current === 'Error') clear();
+      if (overwrite || current === '0') {
+        current = digit;
+        overwrite = false;
+      } else {
+        current += digit;
+      }
+    }
+
+    function inputDecimal() {
+      if (current === 'Error') clear();
+      if (overwrite) {
+        current = '0.';
+        overwrite = false;
+      } else if (!current.includes('.')) {
+        current += '.';
+      }
+    }
+
+    function backspace() {
+      if (current === 'Error') return clear();
+      if (overwrite) return;
+      current = current.length > 1 ? current.slice(0, -1) : '0';
+    }
+
+    function percent() {
+      if (current === 'Error') return;
+      current = format(parseFloat(current) / 100);
+      overwrite = true;
+    }
+
+    function chooseOperator(nextOperator) {
+      if (current === 'Error') return;
+      const value = parseFloat(current);
+
+      // Pressing another operator right after one just swaps it.
+      if (operator !== null && overwrite) {
+        operator = nextOperator;
+        return;
+      }
+
+      if (accumulator === null) {
+        accumulator = value;
+      } else if (operator !== null) {
+        accumulator = compute(accumulator, value, operator);
+        current = format(accumulator);
+        if (current === 'Error') {
+          accumulator = null;
+          operator = null;
+          overwrite = false;
+          return;
+        }
+      }
+
+      operator = nextOperator;
+      overwrite = true;
+    }
+
+    function equals() {
+      if (current === 'Error' || operator === null || accumulator === null) return;
+      current = format(compute(accumulator, parseFloat(current), operator));
+      accumulator = null;
+      operator = null;
+      overwrite = true;
+    }
+
+    const actions = {
+      clear: clear,
+      backspace: backspace,
+      percent: percent,
+      decimal: inputDecimal,
+      equals: equals
+    };
+
+    document.querySelector('.keys').addEventListener('click', function (event) {
+      const button = event.target.closest('button');
+      if (!button) return;
+
+      if (button.dataset.digit) {
+        inputDigit(button.dataset.digit);
+      } else if (button.dataset.operator) {
+        chooseOperator(button.dataset.operator);
+      } else {
+        actions[button.dataset.action]();
+      }
+      render();
+    });
+
+    document.addEventListener('keydown', function (event) {
+      const key = event.key;
+
+      if (key >= '0' && key <= '9') inputDigit(key);
+      else if ('+-*/'.includes(key)) chooseOperator(key);
+      else if (key === '.' || key === ',') inputDecimal();
+      else if (key === 'Enter' || key === '=') equals();
+      else if (key === 'Backspace') backspace();
+      else if (key === '%') percent();
+      else if (key === 'Escape') clear();
+      else return;
+
+      event.preventDefault();
+      render();
+    });
+
+    render();
+  </script>
 </body>
 </html>
