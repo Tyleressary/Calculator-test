@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Tyler's Calculator</title>
+  <title>Tyler's Snake Game</title>
   <style>
     body {
       margin: 0;
@@ -15,14 +15,14 @@
       gap: 1.5rem;
       padding: 1.5rem 0;
       box-sizing: border-box;
-      background-color: #f0fff4;
+      background-color: #fff5f5;
       font-family: Arial, Helvetica, sans-serif;
     }
 
     h1 {
       margin: 0;
       text-align: center;
-      color: #2e7d32;
+      color: #c62828;
       font-size: 3rem;
     }
 
@@ -106,7 +106,7 @@
   </style>
 </head>
 <body>
-  <h1>Tyler's Calculator</h1>
+  <h1>Tyler's Snake Game</h1>
 
   <div class="game">
     <div class="scoreboard">
@@ -264,15 +264,20 @@
         context.stroke();
       }
 
+      // Everything is red, so the apple leans bright and gets an outline to
+      // stay readable against the darker snake.
       if (food) {
-        context.fillStyle = '#2e7d32';
         context.beginPath();
         context.arc((food.x + 0.5) * CELL, (food.y + 0.5) * CELL, CELL * 0.32, 0, Math.PI * 2);
+        context.fillStyle = '#ff5252';
         context.fill();
+        context.strokeStyle = '#7f0000';
+        context.lineWidth = 2;
+        context.stroke();
       }
 
       snake.forEach(function (part, index) {
-        context.fillStyle = index === 0 ? '#b71c1c' : '#e05252';
+        context.fillStyle = index === 0 ? '#7f0000' : '#c62828';
         roundedCell(part.x, part.y, 1.5, 5);
       });
 
