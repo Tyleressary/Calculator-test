@@ -131,11 +131,19 @@
 
     const GRID = 20;                       // board is GRID x GRID cells
     const CELL = canvas.width / GRID;
-    const START_INTERVAL = 140;            // ms per move
-    const MIN_INTERVAL = 70;
-    const SPEEDUP = 4;                     // ms shaved off per apple
+    const START_INTERVAL = 220;            // ms per move on a fresh game
+    const MIN_INTERVAL = 65;               // fastest the snake ever moves
+    const DECAY = 0.96;                    // interval multiplier per apple
 
-    let snake, direction, queued, food, score, best, state, interval, sinceMove, lastFrame;
+    let snake, direction, queued, food, score, best, state, sinceMove, lastFrame;
+
+    // Speed is derived from the score rather than accumulated, so it always
+    // matches the apples eaten and a new game starts slow again. The curve
+    // eases in: early apples add a little pace, and it takes about 30 to
+    // reach the floor.
+    function currentInterval() {
+      return Math.max(MIN_INTERVAL, START_INTERVAL * Math.pow(DECAY, score));
+    }
 
     /* ---------- state ---------- */
 
@@ -165,7 +173,6 @@
       direction = { x: 1, y: 0 };
       queued = [];
       score = 0;
-      interval = START_INTERVAL;
       sinceMove = 0;
       state = 'ready';
       placeFood();
@@ -214,7 +221,6 @@
       snake.unshift(head);
       if (ate) {
         score++;
-        interval = Math.max(MIN_INTERVAL, interval - SPEEDUP);
         placeFood();
         if (!food) return win();
         updateScore();
@@ -313,8 +319,11 @@
 
       if (state === 'running') {
         sinceMove += elapsed;
-        while (sinceMove >= interval && state === 'running') {
-          sinceMove -= interval;
+        // Re-read the interval each pass, since eating mid-frame changes it.
+        while (state === 'running') {
+          const tick = currentInterval();
+          if (sinceMove < tick) break;
+          sinceMove -= tick;
           step();
         }
       }
