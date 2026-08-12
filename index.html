@@ -13,6 +13,8 @@
       align-items: center;
       justify-content: center;
       gap: 1.5rem;
+      padding: 1.5rem 0;
+      box-sizing: border-box;
       background-color: #f0fff4;
       font-family: Arial, Helvetica, sans-serif;
     }
@@ -25,46 +27,57 @@
     }
 
     .calculator {
-      width: 28rem;
-      max-width: 92vw;
+      width: 32rem;
+      max-width: 94vw;
       padding: 1.5rem;
       border-radius: 1.25rem;
       background-color: #ffffff;
       box-shadow: 0 0.5rem 1.5rem rgba(198, 40, 40, 0.3);
     }
 
-    #display {
-      min-height: 4rem;
+    .screen {
       margin-bottom: 1.25rem;
-      padding: 1rem 1.25rem;
+      padding: 0.75rem 1.25rem 1rem;
       border-radius: 0.75rem;
       background-color: #ffebee;
+      text-align: right;
+    }
+
+    #expression {
+      min-height: 1.5rem;
+      color: #e57373;
+      font-size: 1.1rem;
+      overflow-x: auto;
+      white-space: nowrap;
+    }
+
+    #display {
+      min-height: 3.25rem;
       color: #b71c1c;
       font-size: 2.75rem;
-      text-align: right;
       overflow-x: auto;
       white-space: nowrap;
     }
 
     .keys {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 0.625rem;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 0.5rem;
     }
 
     button {
-      padding: 1.4rem 0;
+      padding: 1.1rem 0;
       border: none;
       border-radius: 0.75rem;
-      background-color: #ffebee;
+      background-color: #ffcdd2;
       color: #b71c1c;
-      font-size: 1.75rem;
+      font-size: 1.2rem;
       font-family: inherit;
       cursor: pointer;
     }
 
     button:hover {
-      background-color: #ffcdd2;
+      background-color: #ef9a9a;
     }
 
     button:active {
@@ -76,25 +89,51 @@
       outline-offset: 0.125rem;
     }
 
+    .digit {
+      background-color: #ffebee;
+      font-size: 1.5rem;
+    }
+
+    .digit:hover {
+      background-color: #ffcdd2;
+    }
+
     .operator {
       background-color: #ef9a9a;
+      font-size: 1.4rem;
     }
 
     .operator:hover {
       background-color: #e57373;
     }
 
+    .clear {
+      background-color: #e57373;
+      color: #ffffff;
+    }
+
+    .clear:hover {
+      background-color: #ef5350;
+    }
+
     .equals {
       background-color: #c62828;
       color: #ffffff;
+      font-size: 1.5rem;
     }
 
     .equals:hover {
       background-color: #b71c1c;
     }
 
-    .span-two {
-      grid-column: span 2;
+    /* DEG/RAD and INV light up while engaged. */
+    .toggle.active {
+      background-color: #c62828;
+      color: #ffffff;
+    }
+
+    .toggle.active:hover {
+      background-color: #b71c1c;
     }
   </style>
 </head>
@@ -102,155 +141,361 @@
   <h1>Tyler's Calculator</h1>
 
   <div class="calculator">
-    <div id="display" role="status" aria-live="polite">0</div>
+    <div class="screen">
+      <div id="expression" aria-hidden="true"></div>
+      <div id="display" role="status" aria-live="polite">0</div>
+    </div>
+
     <div class="keys">
-      <button data-action="clear">C</button>
+      <button class="toggle" data-action="angle" id="angle-key">DEG</button>
+      <button class="toggle" data-action="inverse" id="inverse-key">INV</button>
+      <button data-insert="(">(</button>
+      <button data-insert=")">)</button>
+      <button class="clear" data-action="clear">C</button>
+
+      <button data-insert="sin(" data-insert-inv="asin(" data-label-inv="sin&#8315;&#185;">sin</button>
+      <button data-insert="cos(" data-insert-inv="acos(" data-label-inv="cos&#8315;&#185;">cos</button>
+      <button data-insert="tan(" data-insert-inv="atan(" data-label-inv="tan&#8315;&#185;">tan</button>
       <button data-action="backspace">&#9003;</button>
-      <button data-action="percent">%</button>
-      <button class="operator" data-operator="/">&divide;</button>
+      <button class="operator" data-insert="/">&divide;</button>
 
-      <button data-digit="7">7</button>
-      <button data-digit="8">8</button>
-      <button data-digit="9">9</button>
-      <button class="operator" data-operator="*">&times;</button>
+      <button data-insert="ln(" data-insert-inv="e^(" data-label-inv="e&#739;">ln</button>
+      <button data-insert="log(" data-insert-inv="10^(" data-label-inv="10&#739;">log</button>
+      <button data-insert="&radic;(">&radic;</button>
+      <button class="operator" data-insert="^">x&#8319;</button>
+      <button class="operator" data-insert="*">&times;</button>
 
-      <button data-digit="4">4</button>
-      <button data-digit="5">5</button>
-      <button data-digit="6">6</button>
-      <button class="operator" data-operator="-">&minus;</button>
+      <button class="digit" data-insert="7">7</button>
+      <button class="digit" data-insert="8">8</button>
+      <button class="digit" data-insert="9">9</button>
+      <button data-insert="^2">x&sup2;</button>
+      <button class="operator" data-insert="-">&minus;</button>
 
-      <button data-digit="1">1</button>
-      <button data-digit="2">2</button>
-      <button data-digit="3">3</button>
-      <button class="operator" data-operator="+">+</button>
+      <button class="digit" data-insert="4">4</button>
+      <button class="digit" data-insert="5">5</button>
+      <button class="digit" data-insert="6">6</button>
+      <button data-insert="^-1">1/x</button>
+      <button class="operator" data-insert="+">+</button>
 
-      <button class="span-two" data-digit="0">0</button>
-      <button data-action="decimal">.</button>
+      <button class="digit" data-insert="1">1</button>
+      <button class="digit" data-insert="2">2</button>
+      <button class="digit" data-insert="3">3</button>
+      <button data-insert="!">n!</button>
+      <button data-insert="%">%</button>
+
+      <button data-insert="&pi;">&pi;</button>
+      <button data-insert="e">e</button>
+      <button class="digit" data-insert="0">0</button>
+      <button class="digit" data-insert=".">.</button>
       <button class="equals" data-action="equals">=</button>
     </div>
   </div>
 
   <script>
     const display = document.getElementById('display');
+    const expressionLine = document.getElementById('expression');
+    const angleKey = document.getElementById('angle-key');
+    const inverseKey = document.getElementById('inverse-key');
 
-    // current: the digits being typed. accumulator/operator hold the pending
-    // left-hand side. overwrite means the next digit starts a fresh number.
-    let current = '0';
-    let accumulator = null;
-    let operator = null;
-    let overwrite = false;
+    let expr = '';            // the expression the user is building
+    let history = '';         // the small line above the result
+    let justEvaluated = false; // next operand press starts a fresh expression
+    let degrees = true;
+    let inverse = false;
 
-    function render() {
-      display.textContent = current;
+    /* ---------- tokenizer ---------- */
+
+    // Longest names first so "asin" is not read as "a" + "sin".
+    const FUNCTION_NAMES = ['asin', 'acos', 'atan', 'sin', 'cos', 'tan', 'ln', 'log', '√'];
+    const OPERATORS = '+-*/^';
+
+    // Precedence and associativity. 'u-' is unary minus, and it deliberately
+    // sits below '^' so that -2^2 is -(2^2) = -4, per the usual convention.
+    const PRECEDENCE = { '^': 3, 'u-': 2.5, '*': 2, '/': 2, '+': 1, '-': 1 };
+    const RIGHT_ASSOCIATIVE = { '^': true };
+
+    function tokenize(input) {
+      const tokens = [];
+      let i = 0;
+
+      // True when the previous token can end a value, which tells us whether a
+      // '-' is subtraction or negation, and where to imply multiplication.
+      const afterValue = () => {
+        const last = tokens[tokens.length - 1];
+        if (!last) return false;
+        return last.type === 'number' || last.type === 'postfix' ||
+          (last.type === 'paren' && last.value === ')');
+      };
+
+      while (i < input.length) {
+        const char = input[i];
+
+        if (char === ' ') { i++; continue; }
+
+        if (/[0-9.]/.test(char)) {
+          let number = '';
+          while (i < input.length && /[0-9.]/.test(input[i])) number += input[i++];
+          if ((number.match(/\./g) || []).length > 1) throw new Error('bad number');
+          if (afterValue()) tokens.push({ type: 'operator', value: '*' });
+          tokens.push({ type: 'number', value: parseFloat(number) });
+          continue;
+        }
+
+        if (char === 'π' || char === 'e') {
+          if (afterValue()) tokens.push({ type: 'operator', value: '*' });
+          tokens.push({ type: 'number', value: char === 'π' ? Math.PI : Math.E });
+          i++;
+          continue;
+        }
+
+        const name = FUNCTION_NAMES.find(fn => input.startsWith(fn, i));
+        if (name) {
+          if (afterValue()) tokens.push({ type: 'operator', value: '*' });
+          tokens.push({ type: 'function', value: name });
+          i += name.length;
+          continue;
+        }
+
+        if (char === '(') {
+          if (afterValue()) tokens.push({ type: 'operator', value: '*' });
+          tokens.push({ type: 'paren', value: '(' });
+          i++;
+          continue;
+        }
+
+        if (char === ')') { tokens.push({ type: 'paren', value: ')' }); i++; continue; }
+
+        if (char === '!' || char === '%') {
+          tokens.push({ type: 'postfix', value: char });
+          i++;
+          continue;
+        }
+
+        if (OPERATORS.includes(char)) {
+          if (!afterValue() && (char === '-' || char === '+')) {
+            // Leading sign, or a sign straight after '(' or another operator.
+            if (char === '-') tokens.push({ type: 'operator', value: 'u-' });
+          } else {
+            tokens.push({ type: 'operator', value: char });
+          }
+          i++;
+          continue;
+        }
+
+        throw new Error('unexpected character: ' + char);
+      }
+
+      return tokens;
     }
 
-    // Trims floating-point noise like 0.1 + 0.2 => 0.30000000000000004.
-    function format(value) {
-      if (!isFinite(value)) return 'Error';
-      return String(parseFloat(value.toPrecision(12)));
+    /* ---------- shunting-yard: infix tokens to RPN ---------- */
+
+    function toPostfix(tokens) {
+      const output = [];
+      const stack = [];
+
+      for (const token of tokens) {
+        if (token.type === 'number') {
+          output.push(token);
+        } else if (token.type === 'postfix') {
+          // Binds tighter than any infix operator, so it can go straight out.
+          output.push(token);
+        } else if (token.type === 'function') {
+          stack.push(token);
+        } else if (token.type === 'operator') {
+          // A prefix operator has no left operand, so it never pops. This is
+          // what keeps 2^-1 from being read as (2^)-1.
+          if (token.value === 'u-') { stack.push(token); continue; }
+          while (stack.length) {
+            const top = stack[stack.length - 1];
+            if (top.type !== 'operator') break;
+            const higher = PRECEDENCE[top.value] > PRECEDENCE[token.value];
+            const equalAndLeft = PRECEDENCE[top.value] === PRECEDENCE[token.value] &&
+              !RIGHT_ASSOCIATIVE[token.value];
+            if (!higher && !equalAndLeft) break;
+            output.push(stack.pop());
+          }
+          stack.push(token);
+        } else if (token.value === '(') {
+          stack.push(token);
+        } else {
+          while (stack.length && stack[stack.length - 1].value !== '(') {
+            output.push(stack.pop());
+          }
+          if (!stack.length) throw new Error('unbalanced parentheses');
+          stack.pop();
+          if (stack.length && stack[stack.length - 1].type === 'function') {
+            output.push(stack.pop());
+          }
+        }
+      }
+
+      while (stack.length) {
+        const top = stack.pop();
+        if (top.type === 'paren') throw new Error('unbalanced parentheses');
+        output.push(top);
+      }
+
+      return output;
     }
 
-    function compute(a, b, op) {
+    /* ---------- evaluation ---------- */
+
+    const toRadians = x => degrees ? x * Math.PI / 180 : x;
+    const fromRadians = x => degrees ? x * 180 / Math.PI : x;
+
+    // sin(180 deg) lands on 1.2e-16 in floating point; show the 0 the user expects.
+    const snap = x => Math.abs(x) < 1e-12 ? 0 : x;
+
+    function factorial(n) {
+      if (!Number.isInteger(n) || n < 0) return NaN;
+      if (n > 170) return Infinity;
+      let result = 1;
+      for (let i = 2; i <= n; i++) result *= i;
+      return result;
+    }
+
+    const FUNCTIONS = {
+      sin: x => snap(Math.sin(toRadians(x))),
+      cos: x => snap(Math.cos(toRadians(x))),
+      tan: x => snap(Math.tan(toRadians(x))),
+      asin: x => fromRadians(Math.asin(x)),
+      acos: x => fromRadians(Math.acos(x)),
+      atan: x => fromRadians(Math.atan(x)),
+      ln: x => Math.log(x),
+      log: x => Math.log10(x),
+      '√': x => Math.sqrt(x)
+    };
+
+    function applyOperator(op, a, b) {
       switch (op) {
         case '+': return a + b;
         case '-': return a - b;
         case '*': return a * b;
         case '/': return b === 0 ? NaN : a / b;
+        case '^': return Math.pow(a, b);
       }
     }
 
-    function clear() {
-      current = '0';
-      accumulator = null;
-      operator = null;
-      overwrite = false;
-    }
+    function evaluatePostfix(tokens) {
+      const stack = [];
 
-    function inputDigit(digit) {
-      if (current === 'Error') clear();
-      if (overwrite || current === '0') {
-        current = digit;
-        overwrite = false;
-      } else {
-        current += digit;
-      }
-    }
-
-    function inputDecimal() {
-      if (current === 'Error') clear();
-      if (overwrite) {
-        current = '0.';
-        overwrite = false;
-      } else if (!current.includes('.')) {
-        current += '.';
-      }
-    }
-
-    function backspace() {
-      if (current === 'Error') return clear();
-      if (overwrite) return;
-      current = current.length > 1 ? current.slice(0, -1) : '0';
-    }
-
-    function percent() {
-      if (current === 'Error') return;
-      current = format(parseFloat(current) / 100);
-      overwrite = true;
-    }
-
-    function chooseOperator(nextOperator) {
-      if (current === 'Error') return;
-      const value = parseFloat(current);
-
-      // Pressing another operator right after one just swaps it.
-      if (operator !== null && overwrite) {
-        operator = nextOperator;
-        return;
-      }
-
-      if (accumulator === null) {
-        accumulator = value;
-      } else if (operator !== null) {
-        accumulator = compute(accumulator, value, operator);
-        current = format(accumulator);
-        if (current === 'Error') {
-          accumulator = null;
-          operator = null;
-          overwrite = false;
-          return;
+      for (const token of tokens) {
+        if (token.type === 'number') {
+          stack.push(token.value);
+        } else if (token.type === 'function') {
+          if (!stack.length) throw new Error('missing argument');
+          stack.push(FUNCTIONS[token.value](stack.pop()));
+        } else if (token.type === 'postfix') {
+          if (!stack.length) throw new Error('missing operand');
+          const value = stack.pop();
+          stack.push(token.value === '!' ? factorial(value) : value / 100);
+        } else if (token.value === 'u-') {
+          if (!stack.length) throw new Error('missing operand');
+          stack.push(-stack.pop());
+        } else {
+          if (stack.length < 2) throw new Error('missing operand');
+          const b = stack.pop();
+          const a = stack.pop();
+          stack.push(applyOperator(token.value, a, b));
         }
       }
 
-      operator = nextOperator;
-      overwrite = true;
+      if (stack.length !== 1) throw new Error('malformed expression');
+      return stack[0];
+    }
+
+    function evaluate(input) {
+      // Let the user leave trailing '(' unclosed, like a real calculator does.
+      const open = (input.match(/\(/g) || []).length;
+      const closed = (input.match(/\)/g) || []).length;
+      const balanced = input + ')'.repeat(Math.max(0, open - closed));
+      return evaluatePostfix(toPostfix(tokenize(balanced)));
+    }
+
+    // Trims floating-point noise like 0.1 + 0.2 => 0.30000000000000004.
+    function format(value) {
+      if (typeof value !== 'number' || !isFinite(value)) return 'Error';
+      return String(parseFloat(value.toPrecision(12)));
+    }
+
+    /* ---------- input handling ---------- */
+
+    function render() {
+      display.textContent = expr === '' ? '0' : expr;
+      expressionLine.textContent = history;
+    }
+
+    function insert(text) {
+      // After '=', a digit or function starts over but an operator keeps going.
+      if (justEvaluated) {
+        if (!OPERATORS.includes(text) && text !== '!' && text !== '%' && !text.startsWith('^')) {
+          expr = '';
+        }
+        history = '';
+        justEvaluated = false;
+      }
+      if (expr === 'Error') expr = '';
+      expr += text;
+    }
+
+    function clear() {
+      expr = '';
+      history = '';
+      justEvaluated = false;
+    }
+
+    function backspace() {
+      if (justEvaluated || expr === 'Error') return clear();
+      // Delete a whole function name rather than one letter at a time.
+      const name = FUNCTION_NAMES.find(fn => expr.endsWith(fn + '('));
+      expr = expr.slice(0, -(name ? name.length + 1 : 1));
     }
 
     function equals() {
-      if (current === 'Error' || operator === null || accumulator === null) return;
-      current = format(compute(accumulator, parseFloat(current), operator));
-      accumulator = null;
-      operator = null;
-      overwrite = true;
+      if (expr === '' || expr === 'Error') return;
+      let result;
+      try {
+        result = format(evaluate(expr));
+      } catch (error) {
+        result = 'Error';
+      }
+      history = result === 'Error' ? '' : expr + ' =';
+      expr = result;
+      justEvaluated = true;
+    }
+
+    function setInverse(on) {
+      inverse = on;
+      inverseKey.classList.toggle('active', inverse);
+      document.querySelectorAll('[data-insert-inv]').forEach(button => {
+        if (!button.dataset.label) button.dataset.label = button.textContent;
+        button.textContent = inverse ? button.dataset.labelInv : button.dataset.label;
+      });
     }
 
     const actions = {
       clear: clear,
       backspace: backspace,
-      percent: percent,
-      decimal: inputDecimal,
-      equals: equals
+      equals: equals,
+      angle: () => {
+        degrees = !degrees;
+        angleKey.textContent = degrees ? 'DEG' : 'RAD';
+        angleKey.classList.toggle('active', !degrees);
+      },
+      inverse: () => setInverse(!inverse)
     };
 
     document.querySelector('.keys').addEventListener('click', function (event) {
       const button = event.target.closest('button');
       if (!button) return;
 
-      if (button.dataset.digit) {
-        inputDigit(button.dataset.digit);
-      } else if (button.dataset.operator) {
-        chooseOperator(button.dataset.operator);
-      } else {
+      if (button.dataset.action) {
         actions[button.dataset.action]();
+      } else {
+        const inverted = inverse && button.dataset.insertInv;
+        insert(inverted ? button.dataset.insertInv : button.dataset.insert);
+        if (inverted || (inverse && button.dataset.insert)) setInverse(false);
       }
       render();
     });
@@ -258,12 +503,11 @@
     document.addEventListener('keydown', function (event) {
       const key = event.key;
 
-      if (key >= '0' && key <= '9') inputDigit(key);
-      else if ('+-*/'.includes(key)) chooseOperator(key);
-      else if (key === '.' || key === ',') inputDecimal();
+      if (/^[0-9.()+\-*/^!%]$/.test(key)) insert(key);
+      else if (key === 'p') insert('π');
+      else if (key === 'e') insert('e');
       else if (key === 'Enter' || key === '=') equals();
       else if (key === 'Backspace') backspace();
-      else if (key === '%') percent();
       else if (key === 'Escape') clear();
       else return;
 
