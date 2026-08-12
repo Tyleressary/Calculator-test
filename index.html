@@ -26,7 +26,7 @@
       font-size: 3rem;
     }
 
-    .calculator {
+    .game {
       width: 32rem;
       max-width: 94vw;
       padding: 1.5rem;
@@ -35,49 +35,59 @@
       box-shadow: 0 0.5rem 1.5rem rgba(198, 40, 40, 0.3);
     }
 
-    .screen {
-      margin-bottom: 1.25rem;
-      padding: 0.75rem 1.25rem 1rem;
+    .scoreboard {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 1rem;
+      color: #b71c1c;
+      font-size: 1.5rem;
+    }
+
+    .scoreboard span {
+      font-size: 1rem;
+      color: #e57373;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: auto;
       border-radius: 0.75rem;
       background-color: #ffebee;
-      text-align: right;
+      touch-action: none;
     }
 
-    #expression {
-      min-height: 1.5rem;
+    .controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .hint {
       color: #e57373;
-      font-size: 1.1rem;
-      overflow-x: auto;
-      white-space: nowrap;
-    }
-
-    #display {
-      min-height: 3.25rem;
-      color: #b71c1c;
-      font-size: 2.75rem;
-      overflow-x: auto;
-      white-space: nowrap;
-    }
-
-    .keys {
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 0.5rem;
+      font-size: 0.95rem;
+      line-height: 1.4;
     }
 
     button {
-      padding: 1.1rem 0;
+      padding: 0.85rem 1.5rem;
       border: none;
       border-radius: 0.75rem;
-      background-color: #ffcdd2;
-      color: #b71c1c;
-      font-size: 1.2rem;
+      background-color: #c62828;
+      color: #ffffff;
+      font-size: 1.15rem;
       font-family: inherit;
       cursor: pointer;
+      white-space: nowrap;
     }
 
     button:hover {
-      background-color: #ef9a9a;
+      background-color: #b71c1c;
     }
 
     button:active {
@@ -89,433 +99,287 @@
       outline-offset: 0.125rem;
     }
 
-    .digit {
-      background-color: #ffebee;
-      font-size: 1.5rem;
-    }
-
-    .digit:hover {
-      background-color: #ffcdd2;
-    }
-
-    .operator {
-      background-color: #ef9a9a;
-      font-size: 1.4rem;
-    }
-
-    .operator:hover {
-      background-color: #e57373;
-    }
-
-    .clear {
-      background-color: #e57373;
-      color: #ffffff;
-    }
-
-    .clear:hover {
-      background-color: #ef5350;
-    }
-
-    .equals {
-      background-color: #c62828;
-      color: #ffffff;
-      font-size: 1.5rem;
-    }
-
-    .equals:hover {
-      background-color: #b71c1c;
-    }
-
-    /* DEG/RAD and INV light up while engaged. */
-    .toggle.active {
-      background-color: #c62828;
-      color: #ffffff;
-    }
-
-    .toggle.active:hover {
-      background-color: #b71c1c;
+    @media (max-width: 30rem) {
+      h1 { font-size: 2.25rem; }
+      .controls { flex-direction: column; align-items: stretch; text-align: center; }
     }
   </style>
 </head>
 <body>
   <h1>Tyler's Calculator</h1>
 
-  <div class="calculator">
-    <div class="screen">
-      <div id="expression" aria-hidden="true"></div>
-      <div id="display" role="status" aria-live="polite">0</div>
+  <div class="game">
+    <div class="scoreboard">
+      <div><span>Score</span> <strong id="score" role="status" aria-live="polite">0</strong></div>
+      <div><span>Best</span> <strong id="best">0</strong></div>
     </div>
 
-    <div class="keys">
-      <button class="toggle" data-action="angle" id="angle-key">DEG</button>
-      <button class="toggle" data-action="inverse" id="inverse-key">INV</button>
-      <button data-insert="(">(</button>
-      <button data-insert=")">)</button>
-      <button class="clear" data-action="clear">C</button>
+    <canvas id="board" width="480" height="480" aria-label="Snake game board"></canvas>
 
-      <button data-insert="sin(" data-insert-inv="asin(" data-label-inv="sin&#8315;&#185;">sin</button>
-      <button data-insert="cos(" data-insert-inv="acos(" data-label-inv="cos&#8315;&#185;">cos</button>
-      <button data-insert="tan(" data-insert-inv="atan(" data-label-inv="tan&#8315;&#185;">tan</button>
-      <button data-action="backspace">&#9003;</button>
-      <button class="operator" data-insert="/">&divide;</button>
-
-      <button data-insert="ln(" data-insert-inv="e^(" data-label-inv="e&#739;">ln</button>
-      <button data-insert="log(" data-insert-inv="10^(" data-label-inv="10&#739;">log</button>
-      <button data-insert="&radic;(">&radic;</button>
-      <button class="operator" data-insert="^">x&#8319;</button>
-      <button class="operator" data-insert="*">&times;</button>
-
-      <button class="digit" data-insert="7">7</button>
-      <button class="digit" data-insert="8">8</button>
-      <button class="digit" data-insert="9">9</button>
-      <button data-insert="^2">x&sup2;</button>
-      <button class="operator" data-insert="-">&minus;</button>
-
-      <button class="digit" data-insert="4">4</button>
-      <button class="digit" data-insert="5">5</button>
-      <button class="digit" data-insert="6">6</button>
-      <button data-insert="^-1">1/x</button>
-      <button class="operator" data-insert="+">+</button>
-
-      <button class="digit" data-insert="1">1</button>
-      <button class="digit" data-insert="2">2</button>
-      <button class="digit" data-insert="3">3</button>
-      <button data-insert="!">n!</button>
-      <button data-insert="%">%</button>
-
-      <button data-insert="&pi;">&pi;</button>
-      <button data-insert="e">e</button>
-      <button class="digit" data-insert="0">0</button>
-      <button class="digit" data-insert=".">.</button>
-      <button class="equals" data-action="equals">=</button>
+    <div class="controls">
+      <p class="hint">Arrow keys or WASD to steer<br>Space to pause &middot; swipe on touch</p>
+      <button id="new-game">New Game</button>
     </div>
   </div>
 
   <script>
-    const display = document.getElementById('display');
-    const expressionLine = document.getElementById('expression');
-    const angleKey = document.getElementById('angle-key');
-    const inverseKey = document.getElementById('inverse-key');
+    const canvas = document.getElementById('board');
+    const context = canvas.getContext('2d');
+    const scoreLabel = document.getElementById('score');
+    const bestLabel = document.getElementById('best');
+    const newGameButton = document.getElementById('new-game');
 
-    let expr = '';            // the expression the user is building
-    let history = '';         // the small line above the result
-    let justEvaluated = false; // next operand press starts a fresh expression
-    let degrees = true;
-    let inverse = false;
+    const GRID = 20;                       // board is GRID x GRID cells
+    const CELL = canvas.width / GRID;
+    const START_INTERVAL = 140;            // ms per move
+    const MIN_INTERVAL = 70;
+    const SPEEDUP = 4;                     // ms shaved off per apple
 
-    /* ---------- tokenizer ---------- */
+    let snake, direction, queued, food, score, best, state, interval, sinceMove, lastFrame;
 
-    // Longest names first so "asin" is not read as "a" + "sin".
-    const FUNCTION_NAMES = ['asin', 'acos', 'atan', 'sin', 'cos', 'tan', 'ln', 'log', '√'];
-    const OPERATORS = '+-*/^';
+    /* ---------- state ---------- */
 
-    // Precedence and associativity. 'u-' is unary minus, and it deliberately
-    // sits below '^' so that -2^2 is -(2^2) = -4, per the usual convention.
-    const PRECEDENCE = { '^': 3, 'u-': 2.5, '*': 2, '/': 2, '+': 1, '-': 1 };
-    const RIGHT_ASSOCIATIVE = { '^': true };
-
-    function tokenize(input) {
-      const tokens = [];
-      let i = 0;
-
-      // True when the previous token can end a value, which tells us whether a
-      // '-' is subtraction or negation, and where to imply multiplication.
-      const afterValue = () => {
-        const last = tokens[tokens.length - 1];
-        if (!last) return false;
-        return last.type === 'number' || last.type === 'postfix' ||
-          (last.type === 'paren' && last.value === ')');
-      };
-
-      while (i < input.length) {
-        const char = input[i];
-
-        if (char === ' ') { i++; continue; }
-
-        if (/[0-9.]/.test(char)) {
-          let number = '';
-          while (i < input.length && /[0-9.]/.test(input[i])) number += input[i++];
-          if ((number.match(/\./g) || []).length > 1) throw new Error('bad number');
-          if (afterValue()) tokens.push({ type: 'operator', value: '*' });
-          tokens.push({ type: 'number', value: parseFloat(number) });
-          continue;
-        }
-
-        if (char === 'π' || char === 'e') {
-          if (afterValue()) tokens.push({ type: 'operator', value: '*' });
-          tokens.push({ type: 'number', value: char === 'π' ? Math.PI : Math.E });
-          i++;
-          continue;
-        }
-
-        const name = FUNCTION_NAMES.find(fn => input.startsWith(fn, i));
-        if (name) {
-          if (afterValue()) tokens.push({ type: 'operator', value: '*' });
-          tokens.push({ type: 'function', value: name });
-          i += name.length;
-          continue;
-        }
-
-        if (char === '(') {
-          if (afterValue()) tokens.push({ type: 'operator', value: '*' });
-          tokens.push({ type: 'paren', value: '(' });
-          i++;
-          continue;
-        }
-
-        if (char === ')') { tokens.push({ type: 'paren', value: ')' }); i++; continue; }
-
-        if (char === '!' || char === '%') {
-          tokens.push({ type: 'postfix', value: char });
-          i++;
-          continue;
-        }
-
-        if (OPERATORS.includes(char)) {
-          if (!afterValue() && (char === '-' || char === '+')) {
-            // Leading sign, or a sign straight after '(' or another operator.
-            if (char === '-') tokens.push({ type: 'operator', value: 'u-' });
-          } else {
-            tokens.push({ type: 'operator', value: char });
-          }
-          i++;
-          continue;
-        }
-
-        throw new Error('unexpected character: ' + char);
-      }
-
-      return tokens;
-    }
-
-    /* ---------- shunting-yard: infix tokens to RPN ---------- */
-
-    function toPostfix(tokens) {
-      const output = [];
-      const stack = [];
-
-      for (const token of tokens) {
-        if (token.type === 'number') {
-          output.push(token);
-        } else if (token.type === 'postfix') {
-          // Binds tighter than any infix operator, so it can go straight out.
-          output.push(token);
-        } else if (token.type === 'function') {
-          stack.push(token);
-        } else if (token.type === 'operator') {
-          // A prefix operator has no left operand, so it never pops. This is
-          // what keeps 2^-1 from being read as (2^)-1.
-          if (token.value === 'u-') { stack.push(token); continue; }
-          while (stack.length) {
-            const top = stack[stack.length - 1];
-            if (top.type !== 'operator') break;
-            const higher = PRECEDENCE[top.value] > PRECEDENCE[token.value];
-            const equalAndLeft = PRECEDENCE[top.value] === PRECEDENCE[token.value] &&
-              !RIGHT_ASSOCIATIVE[token.value];
-            if (!higher && !equalAndLeft) break;
-            output.push(stack.pop());
-          }
-          stack.push(token);
-        } else if (token.value === '(') {
-          stack.push(token);
-        } else {
-          while (stack.length && stack[stack.length - 1].value !== '(') {
-            output.push(stack.pop());
-          }
-          if (!stack.length) throw new Error('unbalanced parentheses');
-          stack.pop();
-          if (stack.length && stack[stack.length - 1].type === 'function') {
-            output.push(stack.pop());
-          }
-        }
-      }
-
-      while (stack.length) {
-        const top = stack.pop();
-        if (top.type === 'paren') throw new Error('unbalanced parentheses');
-        output.push(top);
-      }
-
-      return output;
-    }
-
-    /* ---------- evaluation ---------- */
-
-    const toRadians = x => degrees ? x * Math.PI / 180 : x;
-    const fromRadians = x => degrees ? x * 180 / Math.PI : x;
-
-    // sin(180 deg) lands on 1.2e-16 in floating point; show the 0 the user expects.
-    const snap = x => Math.abs(x) < 1e-12 ? 0 : x;
-
-    function factorial(n) {
-      if (!Number.isInteger(n) || n < 0) return NaN;
-      if (n > 170) return Infinity;
-      let result = 1;
-      for (let i = 2; i <= n; i++) result *= i;
-      return result;
-    }
-
-    const FUNCTIONS = {
-      sin: x => snap(Math.sin(toRadians(x))),
-      cos: x => snap(Math.cos(toRadians(x))),
-      tan: x => snap(Math.tan(toRadians(x))),
-      asin: x => fromRadians(Math.asin(x)),
-      acos: x => fromRadians(Math.acos(x)),
-      atan: x => fromRadians(Math.atan(x)),
-      ln: x => Math.log(x),
-      log: x => Math.log10(x),
-      '√': x => Math.sqrt(x)
-    };
-
-    function applyOperator(op, a, b) {
-      switch (op) {
-        case '+': return a + b;
-        case '-': return a - b;
-        case '*': return a * b;
-        case '/': return b === 0 ? NaN : a / b;
-        case '^': return Math.pow(a, b);
-      }
-    }
-
-    function evaluatePostfix(tokens) {
-      const stack = [];
-
-      for (const token of tokens) {
-        if (token.type === 'number') {
-          stack.push(token.value);
-        } else if (token.type === 'function') {
-          if (!stack.length) throw new Error('missing argument');
-          stack.push(FUNCTIONS[token.value](stack.pop()));
-        } else if (token.type === 'postfix') {
-          if (!stack.length) throw new Error('missing operand');
-          const value = stack.pop();
-          stack.push(token.value === '!' ? factorial(value) : value / 100);
-        } else if (token.value === 'u-') {
-          if (!stack.length) throw new Error('missing operand');
-          stack.push(-stack.pop());
-        } else {
-          if (stack.length < 2) throw new Error('missing operand');
-          const b = stack.pop();
-          const a = stack.pop();
-          stack.push(applyOperator(token.value, a, b));
-        }
-      }
-
-      if (stack.length !== 1) throw new Error('malformed expression');
-      return stack[0];
-    }
-
-    function evaluate(input) {
-      // Let the user leave trailing '(' unclosed, like a real calculator does.
-      const open = (input.match(/\(/g) || []).length;
-      const closed = (input.match(/\)/g) || []).length;
-      const balanced = input + ')'.repeat(Math.max(0, open - closed));
-      return evaluatePostfix(toPostfix(tokenize(balanced)));
-    }
-
-    // Trims floating-point noise like 0.1 + 0.2 => 0.30000000000000004.
-    function format(value) {
-      if (typeof value !== 'number' || !isFinite(value)) return 'Error';
-      return String(parseFloat(value.toPrecision(12)));
-    }
-
-    /* ---------- input handling ---------- */
-
-    function render() {
-      display.textContent = expr === '' ? '0' : expr;
-      expressionLine.textContent = history;
-    }
-
-    function insert(text) {
-      // After '=', a digit or function starts over but an operator keeps going.
-      if (justEvaluated) {
-        if (!OPERATORS.includes(text) && text !== '!' && text !== '%' && !text.startsWith('^')) {
-          expr = '';
-        }
-        history = '';
-        justEvaluated = false;
-      }
-      if (expr === 'Error') expr = '';
-      expr += text;
-    }
-
-    function clear() {
-      expr = '';
-      history = '';
-      justEvaluated = false;
-    }
-
-    function backspace() {
-      if (justEvaluated || expr === 'Error') return clear();
-      // Delete a whole function name rather than one letter at a time.
-      const name = FUNCTION_NAMES.find(fn => expr.endsWith(fn + '('));
-      expr = expr.slice(0, -(name ? name.length + 1 : 1));
-    }
-
-    function equals() {
-      if (expr === '' || expr === 'Error') return;
-      let result;
+    function loadBest() {
       try {
-        result = format(evaluate(expr));
+        return parseInt(localStorage.getItem('snake-best'), 10) || 0;
       } catch (error) {
-        result = 'Error';
+        return 0; // storage can be blocked; the game still works without it
       }
-      history = result === 'Error' ? '' : expr + ' =';
-      expr = result;
-      justEvaluated = true;
     }
 
-    function setInverse(on) {
-      inverse = on;
-      inverseKey.classList.toggle('active', inverse);
-      document.querySelectorAll('[data-insert-inv]').forEach(button => {
-        if (!button.dataset.label) button.dataset.label = button.textContent;
-        button.textContent = inverse ? button.dataset.labelInv : button.dataset.label;
+    function saveBest(value) {
+      try {
+        localStorage.setItem('snake-best', String(value));
+      } catch (error) {
+        /* ignore */
+      }
+    }
+
+    function reset() {
+      const middle = Math.floor(GRID / 2);
+      snake = [
+        { x: middle, y: middle },
+        { x: middle - 1, y: middle },
+        { x: middle - 2, y: middle }
+      ];
+      direction = { x: 1, y: 0 };
+      queued = [];
+      score = 0;
+      interval = START_INTERVAL;
+      sinceMove = 0;
+      state = 'ready';
+      placeFood();
+      updateScore();
+    }
+
+    function updateScore() {
+      scoreLabel.textContent = score;
+      bestLabel.textContent = best;
+    }
+
+    function placeFood() {
+      const free = [];
+      for (let x = 0; x < GRID; x++) {
+        for (let y = 0; y < GRID; y++) {
+          if (!snake.some(part => part.x === x && part.y === y)) free.push({ x: x, y: y });
+        }
+      }
+      // No free cell means the snake fills the board — a win.
+      food = free.length ? free[Math.floor(Math.random() * free.length)] : null;
+    }
+
+    /* ---------- simulation ---------- */
+
+    // Turns are queued so two quick presses in one tick both register, and a
+    // 180-degree turn into your own neck is rejected.
+    function turn(x, y) {
+      const last = queued.length ? queued[queued.length - 1] : direction;
+      if (last.x === -x && last.y === -y) return;
+      if (last.x === x && last.y === y) return;
+      if (queued.length < 2) queued.push({ x: x, y: y });
+    }
+
+    function step() {
+      if (queued.length) direction = queued.shift();
+
+      const head = { x: snake[0].x + direction.x, y: snake[0].y + direction.y };
+
+      if (head.x < 0 || head.y < 0 || head.x >= GRID || head.y >= GRID) return gameOver();
+
+      // The tail cell is about to be vacated, so moving into it is legal.
+      const ate = food && head.x === food.x && head.y === food.y;
+      const body = ate ? snake : snake.slice(0, -1);
+      if (body.some(part => part.x === head.x && part.y === head.y)) return gameOver();
+
+      snake.unshift(head);
+      if (ate) {
+        score++;
+        interval = Math.max(MIN_INTERVAL, interval - SPEEDUP);
+        placeFood();
+        if (!food) return win();
+        updateScore();
+      } else {
+        snake.pop();
+      }
+    }
+
+    function gameOver() {
+      state = 'over';
+      if (score > best) {
+        best = score;
+        saveBest(best);
+      }
+      updateScore();
+    }
+
+    function win() {
+      state = 'won';
+      if (score > best) {
+        best = score;
+        saveBest(best);
+      }
+      updateScore();
+    }
+
+    /* ---------- rendering ---------- */
+
+    function roundedCell(x, y, inset, radius) {
+      const size = CELL - inset * 2;
+      context.beginPath();
+      context.roundRect(x * CELL + inset, y * CELL + inset, size, size, radius);
+      context.fill();
+    }
+
+    function draw() {
+      context.clearRect(0, 0, canvas.width, canvas.height);
+
+      context.strokeStyle = '#ffdfe3';
+      context.lineWidth = 1;
+      for (let i = 1; i < GRID; i++) {
+        context.beginPath();
+        context.moveTo(i * CELL, 0);
+        context.lineTo(i * CELL, canvas.height);
+        context.moveTo(0, i * CELL);
+        context.lineTo(canvas.width, i * CELL);
+        context.stroke();
+      }
+
+      if (food) {
+        context.fillStyle = '#2e7d32';
+        context.beginPath();
+        context.arc((food.x + 0.5) * CELL, (food.y + 0.5) * CELL, CELL * 0.32, 0, Math.PI * 2);
+        context.fill();
+      }
+
+      snake.forEach(function (part, index) {
+        context.fillStyle = index === 0 ? '#b71c1c' : '#e05252';
+        roundedCell(part.x, part.y, 1.5, 5);
       });
+
+      if (state !== 'running') drawOverlay();
     }
 
-    const actions = {
-      clear: clear,
-      backspace: backspace,
-      equals: equals,
-      angle: () => {
-        degrees = !degrees;
-        angleKey.textContent = degrees ? 'DEG' : 'RAD';
-        angleKey.classList.toggle('active', !degrees);
-      },
-      inverse: () => setInverse(!inverse)
+    function drawOverlay() {
+      const messages = {
+        ready: ['Snake', 'Press any arrow key to start'],
+        paused: ['Paused', 'Press space to resume'],
+        over: ['Game Over', 'Score ' + score + ' · press space to play again'],
+        won: ['You filled the board!', 'Score ' + score + ' · press space to play again']
+      };
+      const [title, subtitle] = messages[state];
+
+      context.fillStyle = 'rgba(255, 235, 238, 0.76)';
+      context.fillRect(0, 0, canvas.width, canvas.height);
+
+      context.fillStyle = '#b71c1c';
+      context.textAlign = 'center';
+      context.font = 'bold 2.5rem Arial, Helvetica, sans-serif';
+      context.fillText(title, canvas.width / 2, canvas.height / 2 - 10);
+      context.font = '1.05rem Arial, Helvetica, sans-serif';
+      context.fillStyle = '#c62828';
+      context.fillText(subtitle, canvas.width / 2, canvas.height / 2 + 28);
+    }
+
+    /* ---------- loop ---------- */
+
+    function frame(timestamp) {
+      const elapsed = timestamp - (lastFrame || timestamp);
+      lastFrame = timestamp;
+
+      if (state === 'running') {
+        sinceMove += elapsed;
+        while (sinceMove >= interval && state === 'running') {
+          sinceMove -= interval;
+          step();
+        }
+      }
+
+      draw();
+      requestAnimationFrame(frame);
+    }
+
+    /* ---------- input ---------- */
+
+    const KEYS = {
+      ArrowUp: [0, -1], ArrowDown: [0, 1], ArrowLeft: [-1, 0], ArrowRight: [1, 0],
+      w: [0, -1], s: [0, 1], a: [-1, 0], d: [1, 0]
     };
 
-    document.querySelector('.keys').addEventListener('click', function (event) {
-      const button = event.target.closest('button');
-      if (!button) return;
+    function start() {
+      if (state === 'over' || state === 'won') reset();
+      state = 'running';
+      sinceMove = 0;
+    }
 
-      if (button.dataset.action) {
-        actions[button.dataset.action]();
-      } else {
-        const inverted = inverse && button.dataset.insertInv;
-        insert(inverted ? button.dataset.insertInv : button.dataset.insert);
-        if (inverted || (inverse && button.dataset.insert)) setInverse(false);
-      }
-      render();
-    });
+    function togglePause() {
+      if (state === 'running') state = 'paused';
+      else start();
+    }
 
     document.addEventListener('keydown', function (event) {
-      const key = event.key;
+      const move = KEYS[event.key] || KEYS[event.key.toLowerCase()];
 
-      if (/^[0-9.()+\-*/^!%]$/.test(key)) insert(key);
-      else if (key === 'p') insert('π');
-      else if (key === 'e') insert('e');
-      else if (key === 'Enter' || key === '=') equals();
-      else if (key === 'Backspace') backspace();
-      else if (key === 'Escape') clear();
-      else return;
-
-      event.preventDefault();
-      render();
+      if (move) {
+        if (state === 'ready' || state === 'paused') start();
+        if (state === 'running') turn(move[0], move[1]);
+        event.preventDefault();
+      } else if (event.key === ' ') {
+        togglePause();
+        event.preventDefault();
+      }
     });
 
-    render();
+    newGameButton.addEventListener('click', function () {
+      reset();
+      start();
+      canvas.focus();
+    });
+
+    // Swipe controls for touch devices.
+    let touchStart = null;
+    canvas.addEventListener('touchstart', function (event) {
+      const touch = event.changedTouches[0];
+      touchStart = { x: touch.clientX, y: touch.clientY };
+      event.preventDefault();
+    }, { passive: false });
+
+    canvas.addEventListener('touchend', function (event) {
+      if (!touchStart) return;
+      const touch = event.changedTouches[0];
+      const dx = touch.clientX - touchStart.x;
+      const dy = touch.clientY - touchStart.y;
+      touchStart = null;
+
+      if (Math.abs(dx) < 20 && Math.abs(dy) < 20) return togglePause();
+      if (state === 'ready' || state === 'paused' || state === 'over' || state === 'won') start();
+      if (Math.abs(dx) > Math.abs(dy)) turn(dx > 0 ? 1 : -1, 0);
+      else turn(0, dy > 0 ? 1 : -1);
+      event.preventDefault();
+    }, { passive: false });
+
+    best = loadBest();
+    reset();
+    requestAnimationFrame(frame);
   </script>
 </body>
 </html>
